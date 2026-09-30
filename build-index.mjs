@@ -85,19 +85,32 @@ async function main() {
   // 2) Products
   const products = await getAll(
     '/catalog/products?is_visible=true&include=custom_fields,primary_image' +
-    '&include_fields=id,name,price,categories,custom_url'
+    '&include_fields=id,name,price,categories,custom_url,order_quantity_minimum'
   );
 
   // Row format (keep in sync with the website scripts):
-  // [id, name, url, image, price, size, shape, color, treatment, material]
+  // [id, name, url, image, price, size, shape, color, treatment, material, priceA, priceB, priceC, minQty]
   const byCat = {};
   for (const p of products) {
     const cf = {};
-    for (const f of p.custom_fields || []) if (FIELDS.includes(f.name)) cf[f.name] = f.value;
+    for (const f of p.custom_fields || []) cf[f.name] = f.value;
     const img = p.primary_image ? (p.primary_image.url_standard || p.primary_image.url_thumbnail || '') : '';
+    const minQty = p.order_quantity_minimum > 0 ? p.order_quantity_minimum : (/bracelet/i.test(p.name) ? 30 : 1);
     const row = [
-      p.id, p.name, (p.custom_url && p.custom_url.url) || '', img, Number(p.price) || 0,
-      ...FIELDS.map((f) => cf[f] || '')
+      p.id,
+      p.name,
+      (p.custom_url && p.custom_url.url) || '',
+      img,
+      Number(p.price) || 0,
+      cf['Bead Size'] || '',
+      cf['Shape'] || '',
+      cf['Color'] || '',
+      cf['Treatment'] || '',
+      cf['Material'] || '',
+      cf['Unit Price A'] || '',
+      cf['Unit Price B'] || '',
+      cf['Unit Price C'] || '',
+      minQty
     ];
     for (const cid of p.categories || []) {
       if (!catPath[cid]) continue;
