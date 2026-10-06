@@ -2,52 +2,83 @@
 (function () {
   'use strict';
 
-  /* ===== CSS Injection (inside script so BigCommerce Script Manager validates) ===== */
-  var CSS = [
-    ".bhk-pb{--navy:#213A73;--navy-d:#16264D;--navy-t:#EAF0FA;--gold:#D6A650;--gold-d:#8A6420;--line:#E2E7F1;--muted:#5A6378;font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:24px 0}",
-    ".bhk-pb *{box-sizing:border-box}",
-    ".bhk-pb__title{font-size:13px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold-d);margin:0 0 12px}",
-    ".bhk-pb__grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}",
-    ".bhk-pb__btn{display:flex;align-items:center;gap:10px;min-height:60px;padding:10px 14px;border-radius:12px;border:1.5px solid #C9D2E4;background:#fff;color:var(--navy-d);text-decoration:none;line-height:1.2}",
-    ".bhk-pb__btn:hover{border-color:var(--navy);background:var(--navy-t)}",
-    ".bhk-pb__btn--back{background:var(--navy);border-color:var(--navy);color:#fff}",
-    ".bhk-pb__btn--back:hover{background:var(--navy-d);border-color:var(--navy-d)}",
-    ".bhk-pb__ic{width:30px;height:30px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--navy-t);color:var(--navy)}",
-    ".bhk-pb__btn--back .bhk-pb__ic{background:rgba(255,255,255,.15);color:#fff}",
-    ".bhk-pb__txt{display:flex;flex-direction:column;min-width:0}",
-    ".bhk-pb__k{font-size:12px;font-weight:700;color:var(--muted)}",
-    ".bhk-pb__btn--back .bhk-pb__k{color:#C9D3EA}",
-    ".bhk-pb__v{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-    "@media (max-width:1100px){.bhk-pb__grid{grid-template-columns:repeat(3,minmax(0,1fr))}}",
-    "@media (max-width:600px){.bhk-pb{padding:14px}.bhk-pb__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.bhk-pb__btn--back{grid-column:1 / -1}.bhk-pb__btn{padding:10px 12px;gap:8px}.bhk-pb__btn:not(.bhk-pb__btn--back) .bhk-pb__ic{display:none}.bhk-pb__v{white-space:normal}}"
-  ].join("\n");
+  var style = document.createElement('style');
+  style.textContent = `
+.bhk-pb{--navy:#213A73;--navy-d:#16264D;--navy-t:#EAF0FA;--gold:#D6A650;--gold-d:#8A6420;--gold-t:#FBF3E3;--line:#E2E7F1;--muted:#5A6378;--text:#1B2233;--green:#1E7A57;--green-t:#E6F3EE;
+  font-family:'Plus Jakarta Sans','Helvetica Neue',Arial,sans-serif;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:24px 0;position:relative}
+.bhk-pb *{box-sizing:border-box}
+.bhk-pb__title{font-size:13px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold-d);margin:0 0 12px}
+.bhk-pb__grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;position:relative}
+.bhk-pb__item{position:relative}
+.bhk-pb__btn{display:flex;align-items:center;gap:10px;min-height:60px;width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid #C9D2E4;background:#fff;color:var(--navy-d);text-decoration:none;line-height:1.2;cursor:pointer;text-align:left;font:inherit;transition:border-color .15s,background-color .15s}
+.bhk-pb__btn:hover{border-color:var(--navy);background:var(--navy-t)}
+.bhk-pb__btn.is-active{border-color:var(--navy);background:#fff;box-shadow:0 0 0 3px rgba(33,58,115,0.14)}
+.bhk-pb__btn--back{background:var(--navy);border-color:var(--navy);color:#fff}
+.bhk-pb__btn--back:hover{background:var(--navy-d);border-color:var(--navy-d)}
+.bhk-pb__ic{width:30px;height:30px;border-radius:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--navy-t);color:var(--navy)}
+.bhk-pb__btn--back .bhk-pb__ic{background:rgba(255,255,255,.18);color:#fff}
+.bhk-pb__txt{display:flex;flex-direction:column;min-width:0;flex:1}
+.bhk-pb__k{font-size:13px;font-weight:800;color:var(--navy-d);line-height:1.2}
+.bhk-pb__btn--back .bhk-pb__k{font-size:12px;font-weight:700;color:#C9D3EA}
+.bhk-pb__v{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.bhk-pb__btn--back .bhk-pb__v{font-size:14.5px;font-weight:800;color:#fff}
+.bhk-pb__chev{margin-left:auto;color:#8B96AD;display:flex;align-items:center;transition:transform .2s ease;flex-shrink:0}
+.bhk-pb__btn.is-active .bhk-pb__chev{transform:rotate(180deg);color:var(--navy)}
 
-  if (!document.getElementById('bhk-pb-style')) {
-    var styleEl = document.createElement('style');
-    styleEl.id = 'bhk-pb-style';
-    styleEl.appendChild(document.createTextNode(CSS));
-    (document.head || document.documentElement).appendChild(styleEl);
-  }
+/* Popover Dropdown (Opens Upward) */
+.bhk-pb__popover{display:none;position:absolute;bottom:calc(100% + 8px);top:auto;left:0;min-width:270px;background:#fff;border:1px solid #C9D2E4;border-radius:14px;box-shadow:0 -12px 35px rgba(22,38,77,0.18);padding:14px;z-index:9999}
+.bhk-pb__item:nth-last-child(-n+2) .bhk-pb__popover{left:auto;right:0}
+.bhk-pb__item.is-open .bhk-pb__popover{display:block}
+.bhk-pb__list{display:flex;flex-direction:column;gap:4px;max-height:340px;overflow-y:auto;padding-right:4px}
+.bhk-pb__opt{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--text);user-select:none;transition:background .1s}
+.bhk-pb__opt:hover{background:var(--navy-t)}
+.bhk-pb__cb{width:18px;height:18px;border:1.5px solid #9AA5BD;border-radius:5px;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s}
+.bhk-pb__opt.is-checked .bhk-pb__cb{background:var(--navy);border-color:var(--navy)}
+.bhk-pb__cb svg{display:none}
+.bhk-pb__opt.is-checked .bhk-pb__cb svg{display:block}
+.bhk-pb__swatch{width:18px;height:18px;border-radius:9px;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.bhk-pb__badge{background:var(--green-t);color:var(--green);font-size:10px;font-weight:800;padding:2px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.3px;margin-left:6px;display:inline-block}
+.bhk-pb__count{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted)}
+.bhk-pb__foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.bhk-pb__clear{background:none;border:0;color:var(--gold-d);font-weight:700;font-size:13px;cursor:pointer;padding:4px 6px;text-decoration:underline}
+.bhk-pb__clear:hover{color:var(--navy-d)}
+.bhk-pb__apply{background:var(--navy);color:#fff;border:0;border-radius:9px;height:38px;padding:0 16px;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;cursor:pointer;transition:background .15s}
+.bhk-pb__apply:hover{background:var(--navy-d)}
 
-  /* ===== Settings — change these ===== */
+@media (max-width:1100px){
+  .bhk-pb__grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .bhk-pb__popover{left:0;right:auto}
+  .bhk-pb__item:nth-child(3n) .bhk-pb__popover{left:auto;right:0}
+}
+@media (max-width:700px){
+  .bhk-pb{padding:14px}
+  .bhk-pb__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bhk-pb__btn--back{grid-column:1 / -1}
+  .bhk-pb__btn{padding:10px 12px;gap:8px}
+  .bhk-pb__v{white-space:normal}
+  .bhk-pb__popover{position:fixed;top:auto;bottom:0;left:0;right:0;width:100%;border-radius:18px 18px 0 0;padding:18px 18px 24px;box-shadow:0 -10px 30px rgba(0,0,0,0.25)}
+}
+`;
+  document.head.appendChild(style);
+
+  /* ===== Settings ===== */
   var CONFIG = {
-    DATA_URL: 'https://danacentre25-droid.github.io/beadhk-bead-filters/', // same address as the Refine bar
-    PRODUCT_ID: 'input[name="product_id"]',   // hidden field with the product id on product pages
-    PLACE_BEFORE: ['.productView-description', '#tab-related', '.productView-reviews'], // first one found = buttons go above it
-    PLACE_AFTER: '.productView',               // used when none of the above is found
+    DATA_URL: 'https://danacentre25-droid.github.io/beadhk-bead-filters/',
+    PRODUCT_ID: 'input[name="product_id"]',
+    PLACE_BEFORE: ['.productView-description', '#tab-related', '.productView-reviews'],
+    PLACE_AFTER: '.productView',
     TITLE: 'Find more like this',
-    TEST_ONLY: true                            // true = shows only with ?rftest=1 in the address
+    TEST_ONLY: false
   };
 
-  // Row format: [id, name, url, image, price, size, shape, color, treatment, material]
-  // Buttons 2-6. For "Find Natural" the button searches Natural (or 100% Natural).
   var FINDS = [
     { key: 'color', label: 'Find Color', col: 7 },
     { key: 'shape', label: 'Find Shape', col: 6 },
     { key: 'size', label: 'Find Size', col: 5 },
-    { key: 'gemstone', label: 'Find Natural', value: 'Natural' },
+    { key: 'gemstone', label: 'Find Natural', col: 8 },
     { key: 'material', label: 'Find Material', col: 9 }
   ];
+
   var SWATCH = {
     Red: '#B3322C', Pink: '#E3A6AE', Orange: '#D9772B', Yellow: '#E2BE3E', Green: '#4E8A5E', Blue: '#2F5DA8',
     Purple: '#7B5EA7', Brown: '#8A5A2B', Black: '#222222', White: '#F4F2EC', Grey: '#9AA0A6', Clear: '#FFFFFF',
@@ -56,8 +87,12 @@
     'Multi Color': 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)',
     Mix: 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)'
   };
+
   var ICON_BACK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>';
   var ICON_FIND = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+  var ICON_CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  var ICON_CHECK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-10"/></svg>';
+  var ICON_ARROW = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -77,11 +112,6 @@
     if (!/[?&]rftest=1/.test(location.search) || /[?&]rftest=1/.test(url)) return url;
     return url + (url.indexOf('?') < 0 ? '?' : '&') + 'rftest=1';
   }
-  function button(href, cls, icon, k, v) {
-    return '<a class="bhk-pb__btn' + cls + '" href="' + esc(addTest(href)) + '">' +
-      '<span class="bhk-pb__ic">' + icon + '</span><span class="bhk-pb__txt"><span class="bhk-pb__k">' + esc(k) +
-      '</span><span class="bhk-pb__v">' + esc(v) + '</span></span></a>';
-  }
   function place(box) {
     for (var i = 0; i < CONFIG.PLACE_BEFORE.length; i++) {
       var el = document.querySelector(CONFIG.PLACE_BEFORE[i]);
@@ -95,7 +125,7 @@
   function start() {
     if (CONFIG.TEST_ONLY && !/[?&]rftest=1/.test(location.search)) return;
     var idEl = document.querySelector(CONFIG.PRODUCT_ID);
-    if (!idEl || !Number(idEl.value)) return; // not a product page
+    if (!idEl || !Number(idEl.value)) return;
     var pid = Number(idEl.value);
 
     Promise.all([
@@ -106,39 +136,163 @@
       Object.keys(res[0].c).forEach(function (p) { paths[res[0].c[p]] = (res[0].u && res[0].u[res[0].c[p]]) || p; });
       var cats = res[1][pid];
       if (!cats) return;
-      return getJSON(CONFIG.DATA_URL + 'c/' + cats[0] + '.json').then(function (rows) {
+      var catToFetch = cats[1] || cats[0];
+      return getJSON(CONFIG.DATA_URL + 'c/' + catToFetch + '.json').then(function (rows) {
         var me = rows.filter(function (r) { return r[0] === pid; })[0];
         if (!me) return;
 
-        // 1) Back to Results: the filtered list the buyer came from, otherwise the product's overview page
         var list = lastList();
         var backHref = (list && list.path && list.path !== location.pathname) ? list.path + (list.search || '') : paths[cats[0]];
         var backLabel = (list && list.path && list.path !== location.pathname && list.label) ? list.label : 'Overview';
-
-        // 2-6) Find buttons open the list page filtered by one value
         var listPath = paths[cats[1]] || paths[cats[0]];
-        var html = '';
-        if (backHref) html += button(backHref, ' bhk-pb__btn--back', ICON_BACK, 'Back to Results', backLabel);
+
+        var html = '<div class="bhk-pb__item">' +
+          '<a class="bhk-pb__btn bhk-pb__btn--back" href="' + esc(addTest(backHref)) + '">' +
+          '<span class="bhk-pb__ic">' + ICON_BACK + '</span>' +
+          '<span class="bhk-pb__txt"><span class="bhk-pb__k">Back to Results</span>' +
+          '<span class="bhk-pb__v">' + esc(backLabel) + '</span></span>' +
+          '</a></div>';
+
         FINDS.forEach(function (f) {
-          var v = f.value || me[f.col];
-          if (f.key === 'gemstone' && me[8] === '100% Natural') v = '100% Natural';
-          if (!v || !listPath) return;
-          var icon = f.key === 'color' && SWATCH[v] ?
-            '<span style="width:18px;height:18px;border-radius:9px;background:' + SWATCH[v] + ';box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></span>' : ICON_FIND;
-          html += button(listPath + '?' + f.key + '=' + encodeURIComponent(v), '', icon, f.label, v);
+          var thisVal = me[f.col] || '';
+          if (!thisVal || !listPath) return;
+
+          var counts = {};
+          rows.forEach(function (r) {
+            var v = r[f.col];
+            if (!v) return;
+            counts[v] = (counts[v] || 0) + 1;
+          });
+
+          var values = Object.keys(counts).sort(function (a, b) {
+            if (a === thisVal) return -1;
+            if (b === thisVal) return 1;
+            return counts[b] - counts[a];
+          });
+
+          var iconHtml = (f.key === 'color' && SWATCH[thisVal]) ?
+            '<span class="bhk-pb__swatch" style="background:' + (SWATCH[thisVal] || '#ccc') + '"></span>' :
+            ICON_FIND;
+
+          html += '<div class="bhk-pb__item" data-find-key="' + f.key + '" data-list-path="' + esc(listPath) + '">' +
+            '<button type="button" class="bhk-pb__btn" data-act="toggle-menu">' +
+            '<span class="bhk-pb__ic">' + iconHtml + '</span>' +
+            '<span class="bhk-pb__txt"><span class="bhk-pb__k">' + esc(f.label) + '</span>' +
+            '<span class="bhk-pb__v">This: ' + esc(thisVal) + '</span></span>' +
+            '<span class="bhk-pb__chev">' + ICON_CHEV + '</span>' +
+            '</button>' +
+            '<div class="bhk-pb__popover">' +
+            '<div class="bhk-pb__list">';
+
+          var initialCount = counts[thisVal] || 0;
+
+          values.forEach(function (v) {
+            var isCurrent = (v === thisVal);
+            var isChecked = isCurrent;
+            var swatchDot = (f.key === 'color' && SWATCH[v]) ?
+              '<span class="bhk-pb__swatch" style="background:' + SWATCH[v] + ';width:14px;height:14px;border-radius:7px;margin-right:2px"></span>' : '';
+            var badgeHtml = isCurrent ? '<span class="bhk-pb__badge">THIS BEAD</span>' : '';
+
+            html += '<div class="bhk-pb__opt' + (isChecked ? ' is-checked' : '') + '" data-val="' + esc(v) + '" data-count="' + (counts[v] || 0) + '">' +
+              '<span class="bhk-pb__cb">' + ICON_CHECK + '</span>' +
+              swatchDot +
+              '<span style="font-weight:600">' + esc(v) + '</span>' +
+              badgeHtml +
+              '<span class="bhk-pb__count">' + (counts[v] || 0) + '</span>' +
+              '</div>';
+          });
+
+          var initialUrl = listPath + '?' + f.key + '=' + encodeURIComponent(thisVal);
+
+          html += '</div>' +
+            '<div class="bhk-pb__foot">' +
+            '<button type="button" class="bhk-pb__clear" data-act="clear-pop">Clear</button>' +
+            '<a class="bhk-pb__apply" href="' + esc(addTest(initialUrl)) + '" data-act="apply-pop">' +
+            'Show ' + initialCount + ' products ' + ICON_ARROW +
+            '</a>' +
+            '</div></div></div>';
         });
-        if (!html) return;
 
         var box = document.createElement('section');
         box.className = 'bhk-pb';
         box.setAttribute('aria-label', CONFIG.TITLE);
         box.innerHTML = '<h2 class="bhk-pb__title">' + esc(CONFIG.TITLE) + '</h2><div class="bhk-pb__grid">' + html + '</div>';
         place(box);
+
+        box.addEventListener('click', function (e) {
+          var toggleBtn = e.target.closest('[data-act="toggle-menu"]');
+          if (toggleBtn) {
+            var item = toggleBtn.closest('.bhk-pb__item');
+            var wasOpen = item.classList.contains('is-open');
+            box.querySelectorAll('.bhk-pb__item').forEach(function (it) {
+              it.classList.remove('is-open');
+              var b = it.querySelector('.bhk-pb__btn');
+              if (b) b.classList.remove('is-active');
+            });
+            if (!wasOpen) {
+              item.classList.add('is-open');
+              toggleBtn.classList.add('is-active');
+            }
+            return;
+          }
+
+          var opt = e.target.closest('.bhk-pb__opt');
+          if (opt) {
+            opt.classList.toggle('is-checked');
+            updatePopover(opt.closest('.bhk-pb__item'));
+            return;
+          }
+
+          var clearBtn = e.target.closest('[data-act="clear-pop"]');
+          if (clearBtn) {
+            var itemEl = clearBtn.closest('.bhk-pb__item');
+            itemEl.querySelectorAll('.bhk-pb__opt').forEach(function (o) { o.classList.remove('is-checked'); });
+            updatePopover(itemEl);
+            return;
+          }
+        });
+
+        function updatePopover(item) {
+          var key = item.getAttribute('data-find-key');
+          var basePath = item.getAttribute('data-list-path');
+          var checkedOpts = item.querySelectorAll('.bhk-pb__opt.is-checked');
+          var checkedVals = [];
+          var totalProducts = 0;
+          checkedOpts.forEach(function (o) {
+            checkedVals.push(o.getAttribute('data-val'));
+            totalProducts += parseInt(o.getAttribute('data-count'), 10) || 0;
+          });
+
+          var applyBtn = item.querySelector('[data-act="apply-pop"]');
+          if (!applyBtn) return;
+
+          if (checkedVals.length > 0) {
+            var targetUrl = basePath + '?' + key + '=' + encodeURIComponent(checkedVals.join(','));
+            applyBtn.href = addTest(targetUrl);
+            applyBtn.innerHTML = 'Show ' + totalProducts + ' products ' + ICON_ARROW;
+            applyBtn.style.opacity = '1';
+            applyBtn.style.pointerEvents = 'auto';
+          } else {
+            applyBtn.href = addTest(basePath);
+            applyBtn.innerHTML = 'Show all products ' + ICON_ARROW;
+          }
+        }
+
+        document.addEventListener('click', function (e) {
+          if (!box.contains(e.target)) {
+            box.querySelectorAll('.bhk-pb__item').forEach(function (it) {
+              it.classList.remove('is-open');
+              var b = it.querySelector('.bhk-pb__btn');
+              if (b) b.classList.remove('is-active');
+            });
+          }
+        });
       });
     }).catch(function (err) {
       if (window.console) console.warn('Product buttons not loaded:', err);
     });
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
 </script>
