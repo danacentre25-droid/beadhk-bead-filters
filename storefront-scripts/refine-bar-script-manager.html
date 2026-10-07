@@ -9,7 +9,11 @@
 .bhk-rf *{box-sizing:border-box}
 .bhk-rf button{font:inherit;cursor:pointer}
 :where(.bhk-rf) button{color:inherit}
-.bhk-rf__side{width:272px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;max-height:calc(100vh - 180px);overflow:auto;align-self:flex-start;z-index:10;position:relative;}
+.bhk-rf__side{width:272px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;max-height:calc(100vh - 200px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;align-self:flex-start;z-index:10;position:relative;box-sizing:border-box}
+.bhk-rf__side::-webkit-scrollbar{width:6px}
+.bhk-rf__side::-webkit-scrollbar-track{background:transparent}
+.bhk-rf__side::-webkit-scrollbar-thumb{background:#C9D2E4;border-radius:3px}
+.bhk-rf__side::-webkit-scrollbar-thumb:hover{background:#9AA5BD}
 .bhk-rf__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .bhk-rf__title{font-size:18px;font-weight:800;color:var(--navy-d);display:flex;gap:8px;align-items:center}
 .bhk-rf__clear{background:none;border:0;padding:6px;color:var(--gold-d);font-weight:700;font-size:13px;text-decoration:underline}
@@ -191,7 +195,7 @@
   var ICON_ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
   var items = [], state = {}, closed = {}, expanded = {}, shown = CONFIG.PAGE_SIZE, sortBy = 'default', root, isLanding = false;
-  var currentFilteredList = [], scrollObserver = null;
+  var currentFilteredList = [], scrollObserver = null, updateStickySidebar = null;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -436,6 +440,9 @@
       '<div class="bhk-sheetfoot"><button type="button" data-act="close">Show ' + list.length + ' products</button></div>';
     root.querySelector('.bhk-rf__main').innerHTML = main;
     updateInfiniteScrollUI();
+    if (typeof updateStickySidebar === 'function') {
+      requestAnimationFrame(updateStickySidebar);
+    }
 
     // Trigger currency switcher if store currency switcher is on page
     try {
@@ -725,26 +732,34 @@
 
         // JS fallback for sticky sidebar (bypasses parent overflow:hidden issues)
         var side = root.querySelector('.bhk-rf__side');
-        window.addEventListener('scroll', function () {
+        updateStickySidebar = function () {
+          if (!side || !root) return;
           if (window.innerWidth <= 900) {
-             side.style.transform = '';
-             return;
+            side.style.transform = '';
+            side.style.maxHeight = '';
+            return;
           }
           var rootRect = root.getBoundingClientRect();
-          
-          // Ensure a minimum offset of 230px to clear the very tall sticky header
           var header = document.querySelector('.header') || document.querySelector('header');
           var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-          var offset = Math.max(230, headerBottom + 20); 
-          
+          var offset = Math.max(160, headerBottom + 16);
+
           if (rootRect.top < offset) {
             var maxPush = Math.max(0, rootRect.height - side.offsetHeight);
-            var push = offset - rootRect.top;
-            side.style.transform = 'translateY(' + Math.min(push, maxPush) + 'px)';
+            var push = Math.min(offset - rootRect.top, maxPush);
+            side.style.transform = 'translateY(' + push + 'px)';
           } else {
             side.style.transform = '';
           }
-        }, { passive: true });
+
+          var sideRect = side.getBoundingClientRect();
+          var avail = Math.max(260, window.innerHeight - sideRect.top - 20);
+          side.style.maxHeight = avail + 'px';
+        }
+
+        window.addEventListener('scroll', updateStickySidebar, { passive: true });
+        window.addEventListener('resize', updateStickySidebar, { passive: true });
+        updateStickySidebar();
       });
     }).catch(function (err) {
       if (window.console) console.warn('Refine bar not loaded:', err);
