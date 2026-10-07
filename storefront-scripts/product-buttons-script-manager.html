@@ -105,8 +105,35 @@
       return r.json();
     });
   }
+  function normPath(p) {
+    return ('/' + String(p || '').trim()
+      .replace(/^https?:\/\/[^/]+/i, '')
+      .replace(/[?#].*$/, '')
+      .replace(/^\/+|\/+$/g, '')).toLowerCase();
+  }
   function lastList() {
     try { return JSON.parse(sessionStorage.getItem('bhkList') || 'null'); } catch (e) { return null; }
+  }
+  function getLastCategory(indexC) {
+    var list = lastList();
+    if (list && list.path && list.path !== location.pathname) {
+      var np = normPath(list.path);
+      if (indexC[np]) {
+        return { id: indexC[np], path: list.path, search: list.search || '', label: list.label || '' };
+      }
+    }
+    if (document.referrer) {
+      try {
+        var ref = new URL(document.referrer);
+        if (ref.origin === location.origin && ref.pathname !== location.pathname) {
+          var refNp = normPath(ref.pathname);
+          if (indexC[refNp]) {
+            return { id: indexC[refNp], path: ref.pathname, search: ref.search || '', label: '' };
+          }
+        }
+      } catch (e) {}
+    }
+    return null;
   }
   function addTest(url) {
     if (!/[?&]rftest=1/.test(location.search) || /[?&]rftest=1/.test(url)) return url;
@@ -132,19 +159,49 @@
       getJSON(CONFIG.DATA_URL + 'index.json'),
       getJSON(CONFIG.DATA_URL + 'p/' + Math.floor(pid / 1000) + '.json')
     ]).then(function (res) {
+      var indexData = res[0];
+      var pMap = res[1];
       var paths = {};
-      Object.keys(res[0].c).forEach(function (p) { paths[res[0].c[p]] = (res[0].u && res[0].u[res[0].c[p]]) || p; });
-      var cats = res[1][pid];
-      if (!cats) return;
-      var catToFetch = cats[1] || cats[0];
-      return getJSON(CONFIG.DATA_URL + 'c/' + catToFetch + '.json').then(function (rows) {
-        var me = rows.filter(function (r) { return r[0] === pid; })[0];
-        if (!me) return;
+      Object.keys(indexData.c).forEach(function (p) {
+        paths[indexData.c[p]] = (indexData.u && indexData.u[indexData.c[p]]) || p;
+      });
 
-        var list = lastList();
-        var backHref = (list && list.path && list.path !== location.pathname) ? list.path + (list.search || '') : paths[cats[0]];
-        var backLabel = (list && list.path && list.path !== location.pathname && list.label) ? list.label : 'Overview';
-        var listPath = paths[cats[1]] || paths[cats[0]];
+      var cats = pMap[pid] || [];
+      var last = getLastCategory(indexData.c);
+
+      // Prioritize the category the visitor actually came from (e.g. /b01/),
+      // falling back to the product family category (cats[0]) or landing category (cats[1]).
+      var candidateCatId = (last && last.id) ? last.id : (cats[0] || cats[1]);
+      if (!candidateCatId) return;
+
+      function loadCategory(catId, isFromLast) {
+        return getJSON(CONFIG.DATA_URL + 'c/' + catId + '.json').then(function (rows) {
+          var me = rows && rows.filter(function (r) { return r[0] === pid; })[0];
+          if (!me && isFromLast) {
+            var fallbackId = cats[0] || cats[1];
+            if (fallbackId && fallbackId !== catId) {
+              return loadCategory(fallbackId, false);
+            }
+          }
+          if (!me) return null;
+          return { rows: rows, me: me, catId: catId, isFromLast: isFromLast };
+        });
+      }
+
+      return loadCategory(candidateCatId, !!(last && last.id)).then(function (ctx) {
+        if (!ctx) return;
+        var rows = ctx.rows;
+        var me = ctx.me;
+        var currentCatId = ctx.catId;
+
+        // Base URL where the refine filter buttons will redirect:
+        var listPath = (ctx.isFromLast && last && last.path) ? last.path : (paths[currentCatId] || '');
+        if (listPath && !listPath.endsWith('/') && !listPath.includes('?')) {
+          listPath += '/';
+        }
+
+        var backHref = (last && last.path) ? (last.path + (last.search || '')) : (paths[currentCatId] || listPath);
+        var backLabel = (last && last.label) ? last.label : 'Overview';
 
         var html = '<div class="bhk-pb__item">' +
           '<a class="bhk-pb__btn bhk-pb__btn--back" href="' + esc(addTest(backHref)) + '">' +
