@@ -236,8 +236,12 @@
     }
     return true;
   }
-  function sortValues(g, values) {
+  function sortValues(g, values, counts) {
     return values.sort(function (a, b) {
+      if (g.type !== 'pill' && counts) {
+        var diff = (counts[b] || 0) - (counts[a] || 0);
+        if (diff !== 0) return diff;
+      }
       var ia = g.order.indexOf(a), ib = g.order.indexOf(b);
       if (ia < 0) ia = 999; if (ib < 0) ib = 999;
       return ia - ib || String(a).localeCompare(String(b));
@@ -316,7 +320,7 @@
         if (!(v in counts)) counts[v] = 0;
         if (match(p, g.key)) counts[v]++;
       });
-      var values = sortValues(g, Object.keys(counts)).filter(function (v) {
+      var values = sortValues(g, Object.keys(counts), counts).filter(function (v) {
         return counts[v] > 0 || state[g.key].indexOf(v) >= 0;
       });
       if (!values.length) return;
