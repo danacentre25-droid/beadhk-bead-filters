@@ -32,9 +32,8 @@
 .bhk-opt[aria-checked="true"] .bhk-cb{background:var(--navy);border-color:var(--navy)}
 .bhk-opt[aria-checked="true"] .bhk-cb svg{visibility:visible}
 .bhk-opt__n{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);background:#F5F7FB;border-radius:10px;padding:1px 8px}
-.bhk-sw{width:24px;height:24px;border-radius:12px;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
-.bhk-opt[aria-pressed="true"]{background:var(--navy-t);font-weight:700;color:var(--navy)}
-.bhk-opt[aria-pressed="true"] .bhk-sw{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--navy)}
+.bhk-sw{width:18px;height:18px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.bhk-opt[aria-checked="true"] .bhk-sw{box-shadow:0 0 0 1.5px #fff,0 0 0 3px var(--navy)}
 .bhk-more{background:none;border:0;padding:6px 8px;color:var(--navy);font-weight:700;font-size:13px}
 .bhk-rf__main{flex:1;min-width:0}
 .bhk-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
@@ -330,12 +329,14 @@
       values.slice(0, limit).forEach(function (v) {
         var on = state[g.key].indexOf(v) >= 0;
         var attrs = ' data-act="pick" data-g="' + g.key + '" data-v="' + esc(v) + '"' +
-          (g.type === 'check' ? ' role="checkbox" aria-checked="' + on + '"' : ' aria-pressed="' + on + '"');
+          (g.type === 'pill' ? ' aria-pressed="' + on + '"' : ' role="checkbox" aria-checked="' + on + '"');
         if (g.type === 'pill') {
           html += '<button type="button" class="bhk-pill"' + attrs + '>' + esc(v) + '</button>';
         } else if (g.type === 'swatch') {
-          html += '<button type="button" class="bhk-opt"' + attrs + '><span class="bhk-sw" style="background:' +
-            (SWATCH[v] || '#ccc') + '"></span>' + esc(v) + '<span class="bhk-opt__n">' + counts[v] + '</span></button>';
+          html += '<button type="button" class="bhk-opt"' + attrs + '>' +
+            '<span class="bhk-cb" aria-hidden="true">' + ICON_CHECK + '</span>' +
+            '<span class="bhk-sw" style="background:' + (SWATCH[v] || '#ccc') + '"></span>' +
+            esc(v) + '<span class="bhk-opt__n">' + counts[v] + '</span></button>';
         } else {
           html += '<button type="button" class="bhk-opt"' + attrs + '>' +
             '<span class="bhk-cb" aria-hidden="true">' + ICON_CHECK + '</span>' + esc(v) +
