@@ -239,12 +239,58 @@
       return ia - ib || String(a).localeCompare(String(b));
     });
   }
+  var originalOrderMap = {};
+
+  function recordOriginalOrder(container) {
+    if (!container) return;
+    var els = container.querySelectorAll('[data-product-id], [data-entity-id], li.product, article.card, .productCard');
+    els.forEach(function (el) {
+      var id = parseInt(el.getAttribute('data-product-id') || el.getAttribute('data-entity-id'), 10);
+      if (!id) {
+        var sub = el.querySelector('[data-product-id], [data-entity-id]');
+        if (sub) id = parseInt(sub.getAttribute('data-product-id') || sub.getAttribute('data-entity-id'), 10);
+      }
+      if (id && originalOrderMap[id] === undefined) {
+        originalOrderMap[id] = Object.keys(originalOrderMap).length;
+      }
+    });
+  }
+
+  function fetchSubsequentPages(nextUrl) {
+    if (!nextUrl) return;
+    fetch(nextUrl, { credentials: 'same-origin' })
+      .then(function (res) { return res.text(); })
+      .then(function (html) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var cont = doc.querySelector(CONFIG.LISTING);
+        if (cont) recordOriginalOrder(cont);
+        var nextLink = doc.querySelector('.pagination-item--next a, .pagination-next a, [data-pagination-next]');
+        if (nextLink && nextLink.href && nextLink.href !== nextUrl) {
+          fetchSubsequentPages(nextLink.href);
+        } else if (sortBy === 'default') {
+          render();
+        }
+      })
+      .catch(function () {});
+  }
+
   function sizeNum(v) { return parseFloat(v) || 999; }
   function sorted(list) {
     var l = list.slice();
-    if (sortBy === 'size') l.sort(function (a, b) { return sizeNum(a[5]) - sizeNum(b[5]); });
-    else if (sortBy === 'price') l.sort(function (a, b) { return a[4] - b[4]; });
-    else if (sortBy === 'name') l.sort(function (a, b) { return String(a[1]).localeCompare(String(b[1])); });
+    if (sortBy === 'size') {
+      l.sort(function (a, b) { return sizeNum(a[5]) - sizeNum(b[5]); });
+    } else if (sortBy === 'price') {
+      l.sort(function (a, b) { return a[4] - b[4]; });
+    } else if (sortBy === 'name') {
+      l.sort(function (a, b) { return String(a[1]).localeCompare(String(b[1])); });
+    } else {
+      // Default (Featured): preserve original category product sorting
+      l.sort(function (a, b) {
+        var rankA = originalOrderMap[a[0]] !== undefined ? originalOrderMap[a[0]] : 999999;
+        var rankB = originalOrderMap[b[0]] !== undefined ? originalOrderMap[b[0]] : 999999;
+        return rankA - rankB;
+      });
+    }
     return l;
   }
   function selectedCount() {
@@ -545,6 +591,11 @@
     if (CONFIG.TEST_ONLY && !/[?&]rftest=1/.test(location.search)) return;
     var listing = document.querySelector(CONFIG.LISTING);
     if (!listing) return;
+    recordOriginalOrder(listing);
+    var nextLink = document.querySelector('.pagination-item--next a, .pagination-next a, [data-pagination-next]');
+    if (nextLink && nextLink.href) {
+      fetchSubsequentPages(nextLink.href);
+    }
     getJSON(CONFIG.DATA_URL + 'index.json').then(function (idx) {
       var id = idx.c[normPath(location.pathname)];
       if (!id) return;
