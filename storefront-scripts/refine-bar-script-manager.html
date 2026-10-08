@@ -167,15 +167,15 @@
 
   var GROUPS = [
     { key: 'size', label: 'Size', col: 5, type: 'pill', open: true,
-      order: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm', '12mm', '14mm', '15mm', '16mm', '18mm', '20mm', '25mm', '30mm', '35mm', '40mm', '45mm', '50mm', '55mm+', '20mm+'] },
+      order: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm', '12mm', '14mm', '15mm', '16mm', '18mm', '20mm', '25mm', '30mm', '35mm', '40mm', '45mm', '50mm'] },
     { key: 'shape', label: 'Shape', col: 6, type: 'check', open: true,
       order: ['Round', 'Round Bead', 'Rondelle', 'Oval', 'Rice', 'Tube', 'Cube', 'Coin', 'Heart', 'Teardrop', 'Nugget', 'Chip', 'Chips', 'Bicone', 'Donut', 'Round Faceted', 'Rondelle Faceted', 'Polygon', 'Pear', 'Carved', 'Bracelet', 'Heishi', 'Rectangle', 'Square', 'Hexagon', 'Animal', 'Plant', 'Symbol', 'Earring', 'Ring', 'Rope', 'Mix Shape', 'Clasp', 'Pendant'] },
     { key: 'color', label: 'Color', col: 7, type: 'swatch', open: true,
-      order: ['Red', 'Pink', 'Orange', 'Yellow', 'Green', 'Blue', 'Purple', 'Brown', 'Black', 'White', 'Grey', 'Clear', 'Turquoise', 'Amethyst', 'Crystal', 'Multicolor', 'Multi Color', 'Mix'] },
+      order: ['Amethyst', 'Black', 'Blue', 'Brown', 'Clear', 'Crystal', 'Green', 'Grey', 'Mix', 'Multi Color', 'Multicolor', 'Orange', 'Pink', 'Purple', 'Red', 'Turquoise', 'White', 'Yellow'] },
     { key: 'gemstone', label: 'Treatment', col: 8, type: 'check', open: true,
       order: ['Natural', '100% Natural', 'Natural Dyed', 'Heated', 'Dyed', 'Stabilized', 'Synthetic', 'Reconstructed', 'Man Made'] },
     { key: 'material', label: 'Material', col: 9, type: 'check', open: true,
-      order: ['Gemstone', 'Gemstone Matte', 'Crystal Glass', 'Glass Crystal', 'Buffalo Bone', 'Bone', 'Buffalo Horn', 'Amber Horn', 'Metal', 'Pearl', 'Finding'] }
+      order: ['Amber Horn', 'Bone', 'Buffalo Bone', 'Buffalo Horn', 'Crystal Glass', 'Finding', 'Gemstone', 'Gemstone Matte', 'Glass Crystal', 'Metal', 'Pearl'] }
   ];
 
   var SWATCH = {
@@ -186,7 +186,7 @@
     'Multi Color': 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)',
     Mix: 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)'
   };
-  var MAX_VISIBLE = 999;
+  var MAX_VISIBLE = 8;
 
   var ICON_FILTER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
   var ICON_CHEV = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
@@ -242,6 +242,9 @@
   }
   function sortValues(g, values, counts) {
     return values.sort(function (a, b) {
+      if (g.key === 'color' || g.key === 'material') {
+        return String(a).localeCompare(String(b));
+      }
       if (g.type !== 'pill' && counts) {
         var diff = (counts[b] || 0) - (counts[a] || 0);
         if (diff !== 0) return diff;
@@ -325,6 +328,7 @@
         if (match(p, g.key)) counts[v]++;
       });
       var values = sortValues(g, Object.keys(counts), counts).filter(function (v) {
+        if (g.key === 'size' && /^(55mm\+|20mm\+)$/i.test(String(v).trim())) return false;
         return counts[v] > 0 || state[g.key].indexOf(v) >= 0;
       });
       if (!values.length) return;
@@ -352,7 +356,13 @@
         }
       });
       if (g.type === 'pill') html += '</div>';
-      if (values.length > limit) html += '<button type="button" class="bhk-more" data-act="more" data-g="' + g.key + '">Show ' + (values.length - limit) + ' more</button>';
+      if (g.type !== 'pill' && values.length > MAX_VISIBLE) {
+        if (!expanded[g.key]) {
+          html += '<button type="button" class="bhk-more" data-act="more" data-g="' + g.key + '">Show ' + (values.length - MAX_VISIBLE) + ' more</button>';
+        } else {
+          html += '<button type="button" class="bhk-more" data-act="less" data-g="' + g.key + '">Show less</button>';
+        }
+      }
       html += '</div></div>';
     });
     return html;
@@ -677,6 +687,8 @@
       closed[g] = !cur; render();
     } else if (act === 'more') {
       expanded[g] = true; render();
+    } else if (act === 'less') {
+      expanded[g] = false; render();
     } else if (act === 'loadmore') {
       loadMoreProducts();
     } else if (act === 'open') {
