@@ -430,7 +430,6 @@
 
     var main = '<div class="bhk-bar">' +
       '<button type="button" class="bhk-fbtn" data-act="open">' + ICON_FILTER + 'Filter' + (n ? ' (' + n + ')' : '') + '</button>' +
-      '<span class="bhk-count">' + list.length + ' products</span>' + chips +
       '<label class="bhk-sort">Sort<select data-act="sort">' +
       [['default', 'Featured'], ['size', 'Size: small to large'], ['price', 'Price: low to high'], ['name', 'Name: A–Z']]
         .map(function (o) { return '<option value="' + o[0] + '"' + (sortBy === o[0] ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') +
