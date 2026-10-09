@@ -165,7 +165,33 @@
     TEST_ONLY: false
   };
 
+  var STONES_96 = [
+    '7 Chakra', 'Agate', 'Amazonite', 'Amber Horn', 'Amethyst', 'Apatite',
+    'Aquamarine', 'Aventurine', 'Azurite', 'Banded Agate', 'Black Agate',
+    'Blood Agate', 'Bone', 'Boulder opal', 'Bronzite', 'Brown Snowflake',
+    'Buffalo Horn', 'Calcite', 'Carnelian', 'Chalcedony', 'Charoite',
+    'Cherry Quartz', 'Chrysanthemum', 'Chrysprase', 'Citrine', 'Coral',
+    'Crazy Lace Agate', 'Crystal Natural', 'Crystal Synthetic',
+    'Dalmatian Jasper', 'Denim Lapis', 'Druzy Agate', 'Epidot', 'Fire Agate',
+    'Fluorite', 'Fossil Agate', 'Fossil Jasper', 'Freshwater Pearl', 'Garnet',
+    'Glass Crystal', 'Golden Obsidian', 'Goldstone', 'Green Turquoise',
+    'Hematite', 'Howlite', 'Jade dyed', 'Jade Natural', 'Jasper', 'Kiwi Agate',
+    'Labradorite', 'Lapis Lazuli', 'Larimar', 'Lava', 'Lemon Agate',
+    'Leopard Skin', 'Lepidolite', 'Magnesite', 'Mahogany Obsidian',
+    'Malachite', 'Mix', 'Mookaite', 'Moss Agate', 'Mother Of Pearl',
+    'Nephrite Jade', 'Onyx', 'Opalite', 'Other Stones', 'Petrified Wood',
+    'Picasso Agate', 'Picture Jasper', 'Poppy Jasper', 'Quartz',
+    'Red Aventurine', 'Red Creek Jasper', 'Red Jasper', 'Rhodonite',
+    'River Fossil', 'Ruby Zoisite', 'Rutilated', 'Sea Sediment', 'Serpentine',
+    'Sesame Agate', 'Smoky Topaz', 'Snow Quartz', 'Snowflake Obsidian',
+    'Sodalite', 'Sunstone', 'Tiger Eye', 'Topaz Synthetic', 'Tourmaline',
+    'Turquoise', 'Unakite', 'White Obsidian', 'White Turquoise',
+    'Yellow Chalcedony', 'Zebra Agate'
+  ];
+
   var GROUPS = [
+    { key: 'stone', label: 'Stone', col: 14, type: 'check', open: true,
+      order: STONES_96 },
     { key: 'size', label: 'Size', col: 5, type: 'pill', open: true,
       order: ['2mm', '3mm', '4mm', '6mm', '8mm', '10mm', '12mm', '14mm', '15mm', '16mm', '18mm', '20mm', '25mm', '30mm', '35mm', '40mm', '45mm', '50mm'] },
     { key: 'shape', label: 'Shape', col: 6, type: 'check', open: true,
@@ -186,7 +212,7 @@
     'Multi Color': 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)',
     Mix: 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)'
   };
-  var MAX_VISIBLE = 8;
+  var MAX_VISIBLE = 5;
 
   var ICON_FILTER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
   var ICON_CHEV = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
@@ -232,17 +258,43 @@
   }
 
   /* ----- Filtering ----- */
+  var STONE_REGEXES = null;
+  function matchStoneFromTitle(name) {
+    if (!name) return '';
+    if (!STONE_REGEXES) {
+      var sortedStones = STONES_96.slice().sort(function (a, b) { return b.length - a.length; });
+      STONE_REGEXES = sortedStones.map(function (s) {
+        return { name: s, re: new RegExp('\\b' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i') };
+      });
+    }
+    for (var i = 0; i < STONE_REGEXES.length; i++) {
+      if (STONE_REGEXES[i].re.test(name)) return STONE_REGEXES[i].name;
+    }
+    return '';
+  }
+
+  function getVal(p, g) {
+    if (!p) return '';
+    var v = p[g.col];
+    if (g.key === 'stone') {
+      if (v) return v;
+      return matchStoneFromTitle(p[1]);
+    }
+    return v;
+  }
+
   function match(p, except) {
     for (var i = 0; i < GROUPS.length; i++) {
       var g = GROUPS[i], sel = state[g.key];
       if (g.key === except || !sel.length) continue;
-      if (sel.indexOf(p[g.col]) < 0) return false;
+      var val = getVal(p, g);
+      if (sel.indexOf(val) < 0) return false;
     }
     return true;
   }
   function sortValues(g, values, counts) {
     return values.sort(function (a, b) {
-      if (g.key === 'color' || g.key === 'material') {
+      if (g.key === 'stone' || g.key === 'color' || g.key === 'material') {
         return String(a).localeCompare(String(b));
       }
       if (g.type !== 'pill' && counts) {
@@ -322,7 +374,7 @@
     GROUPS.forEach(function (g) {
       var counts = {};
       items.forEach(function (p) {
-        var v = p[g.col];
+        var v = getVal(p, g);
         if (!v) return;
         if (!(v in counts)) counts[v] = 0;
         if (match(p, g.key)) counts[v]++;
@@ -333,7 +385,8 @@
       });
       if (!values.length) return;
       var isClosed = closed[g.key] !== undefined ? closed[g.key] : (!g.open && !state[g.key].length);
-      var limit = (g.type !== 'pill' && !expanded[g.key]) ? MAX_VISIBLE : 999;
+      var isExpanded = expanded[g.key] !== undefined ? expanded[g.key] : state[g.key].some(function (sel) { return values.indexOf(sel) >= MAX_VISIBLE; });
+      var limit = !isExpanded ? MAX_VISIBLE : 999;
       html += '<div class="bhk-g' + (isClosed ? ' is-closed' : '') + '">' +
         '<button type="button" class="bhk-g__btn" data-act="toggle" data-g="' + g.key + '" aria-expanded="' + !isClosed + '">' +
         esc(g.label) + (state[g.key].length ? ' (' + state[g.key].length + ')' : '') + ICON_CHEV + '</button><div class="bhk-g__body">';
@@ -356,8 +409,8 @@
         }
       });
       if (g.type === 'pill') html += '</div>';
-      if (g.type !== 'pill' && values.length > MAX_VISIBLE) {
-        if (!expanded[g.key]) {
+      if (values.length > MAX_VISIBLE) {
+        if (!isExpanded) {
           html += '<button type="button" class="bhk-more" data-act="more" data-g="' + g.key + '">Show ' + (values.length - MAX_VISIBLE) + ' more</button>';
         } else {
           html += '<button type="button" class="bhk-more" data-act="less" data-g="' + g.key + '">Show less</button>';

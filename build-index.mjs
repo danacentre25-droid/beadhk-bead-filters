@@ -13,7 +13,7 @@
 //   BC_STORE_HASH  store hash, e.g. vctoi4lzb9
 //   BC_TOKEN       token of the "Filter Data Nightly" API account (Products: read-only)
 
-import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { mkdir, writeFile, rm, readFile } from 'node:fs/promises';
 
 const STORE = process.env.BC_STORE_HASH;
 const TOKEN = process.env.BC_TOKEN;
@@ -88,14 +88,22 @@ async function main() {
     '&include_fields=id,name,price,categories,custom_url,order_quantity_minimum'
   );
 
+  let skuStone = {};
+  try {
+    skuStone = JSON.parse(await readFile('sku-to-stone.json', 'utf8'));
+  } catch (e) {}
+
   // Row format (keep in sync with the website scripts):
-  // [id, name, url, image, price, size, shape, color, treatment, material, priceA, priceB, priceC, minQty]
+  // [id, name, url, image, price, size, shape, color, treatment, material, priceA, priceB, priceC, minQty, stone]
   const byCat = {};
   for (const p of products) {
     const cf = {};
     for (const f of p.custom_fields || []) cf[f.name] = f.value;
     const img = p.primary_image ? (p.primary_image.url_standard || p.primary_image.url_thumbnail || '') : '';
     const minQty = p.order_quantity_minimum > 0 ? p.order_quantity_minimum : (/bracelet/i.test(p.name) ? 30 : 1);
+    const skuMatch = String(p.name || '').match(/\[([^\]]+)\]/);
+    const sku = (skuMatch ? skuMatch[1] : (p.custom_url && p.custom_url.url ? p.custom_url.url.replace(/\//g, '') : '')).trim().toLowerCase();
+    const stone = skuStone[sku] || '';
     const row = [
       p.id,
       p.name,
@@ -110,7 +118,8 @@ async function main() {
       cf['Unit Price A'] || '',
       cf['Unit Price B'] || '',
       cf['Unit Price C'] || '',
-      minQty
+      minQty,
+      stone
     ];
     for (const cid of p.categories || []) {
       if (!catPath[cid]) continue;
