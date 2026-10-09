@@ -18,27 +18,28 @@
 .bhk-rf__title{font-size:18px;font-weight:800;color:var(--navy-d);display:flex;gap:8px;align-items:center}
 .bhk-rf__clear{background:none;border:0;padding:6px;color:var(--gold-d);font-weight:700;font-size:13px;text-decoration:underline}
 .bhk-rf__close{display:none}
-.bhk-g{border-top:1px solid var(--line);padding:12px 0}
+.bhk-g{border-top:1px solid var(--line);padding:8px 0}
 .bhk-g:first-of-type{border-top:0}
-.bhk-g__btn{width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:0;padding:4px 0;font-weight:800;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-d)}
+.bhk-g__btn{width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:0;padding:2px 0;font-weight:800;font-size:12.5px;letter-spacing:1px;text-transform:uppercase;color:var(--gold-d)}
 .bhk-g__btn svg{transition:transform .15s}
 .bhk-g.is-closed .bhk-g__btn svg{transform:rotate(-90deg)}
 .bhk-g.is-closed .bhk-g__body{display:none}
-.bhk-g__body{padding-top:8px}
-.bhk-pills{display:flex;flex-wrap:wrap;gap:8px}
-.bhk-pill{min-width:56px;height:38px;padding:0 12px;border-radius:10px;border:1.5px solid #C9D2E4;background:#fff;font-weight:700;font-size:14px}
+.bhk-g__body{padding-top:4px}
+.bhk-pills{display:flex;flex-wrap:wrap;gap:6px}
+.bhk-pill{min-width:48px;height:32px;padding:0 10px;border-radius:8px;border:1.5px solid #C9D2E4;background:#fff;font-weight:700;font-size:13px}
 .bhk-pill[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
-.bhk-opt{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:9px;cursor:pointer;font-size:14.5px;width:100%;background:none;border:0;text-align:left}
+.bhk-opt{display:flex;align-items:center;gap:8px;padding:3.5px 6px;border-radius:6px;cursor:pointer;font-size:13.5px;line-height:1.25;width:100%;background:none;border:0;text-align:left}
 .bhk-opt:hover{background:var(--navy-t)}
-.bhk-cb{width:20px;height:20px;border:1.5px solid #9AA5BD;border-radius:6px;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
-.bhk-cb svg{visibility:hidden}
+.bhk-cb{width:16px;height:16px;border:1.5px solid #9AA5BD;border-radius:4px;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.bhk-cb svg{visibility:hidden;width:10px;height:10px}
 .bhk-opt[aria-checked="true"]{background:var(--navy-t);font-weight:700;color:var(--navy)}
 .bhk-opt[aria-checked="true"] .bhk-cb{background:var(--navy);border-color:var(--navy)}
 .bhk-opt[aria-checked="true"] .bhk-cb svg{visibility:visible}
-.bhk-opt__n{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);background:#F5F7FB;border-radius:10px;padding:1px 8px}
-.bhk-sw{width:18px;height:18px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.bhk-opt__n{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--muted);background:#F5F7FB;border-radius:8px;padding:1px 6px}
+.bhk-g[data-g="stone"] .bhk-opt__n{display:none !important}
+.bhk-sw{width:16px;height:16px;border-radius:50%;flex-shrink:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
 .bhk-opt[aria-checked="true"] .bhk-sw{box-shadow:0 0 0 1.5px #fff,0 0 0 3px var(--navy)}
-.bhk-more{background:none;border:0;padding:6px 8px;color:var(--navy);font-weight:700;font-size:13px}
+.bhk-more{background:none;border:0;padding:4px 6px;color:var(--navy);font-weight:700;font-size:12.5px}
 .bhk-rf__main{flex:1;min-width:0}
 .bhk-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .bhk-count{font-weight:800;color:var(--navy-d);font-size:16px;margin-right:4px}
@@ -146,8 +147,8 @@
   .bhk-rf__close{display:flex;width:44px;height:44px;border-radius:22px;border:0;background:#F5F7FB;align-items:center;justify-content:center}
   .bhk-sheetfoot{display:block;position:sticky;bottom:0;background:#fff;padding:12px 0 18px;border-top:1px solid var(--line)}
   .bhk-sheetfoot button{width:100%;height:50px;border-radius:12px;border:0;background:var(--navy);color:#fff;font-weight:800;font-size:16px}
-  .bhk-pill{height:44px}
-  .bhk-opt{min-height:44px}
+  .bhk-pill{height:34px;min-height:34px}
+  .bhk-opt{min-height:30px}
 }
 @media (max-width:480px){
   .bhk-grid{grid-template-columns:1fr}
@@ -212,7 +213,7 @@
     'Multi Color': 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)',
     Mix: 'conic-gradient(#B3322C,#E2BE3E,#4E8A5E,#2F5DA8,#7B5EA7,#B3322C)'
   };
-  var MAX_VISIBLE = 5;
+  var MAX_VISIBLE = 7;
 
   var ICON_FILTER = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>';
   var ICON_CHEV = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
@@ -387,7 +388,7 @@
       var isClosed = closed[g.key] !== undefined ? closed[g.key] : (!g.open && !state[g.key].length);
       var isExpanded = expanded[g.key] !== undefined ? expanded[g.key] : state[g.key].some(function (sel) { return values.indexOf(sel) >= MAX_VISIBLE; });
       var limit = !isExpanded ? MAX_VISIBLE : 999;
-      html += '<div class="bhk-g' + (isClosed ? ' is-closed' : '') + '">' +
+      html += '<div class="bhk-g' + (isClosed ? ' is-closed' : '') + '" data-g="' + g.key + '">' +
         '<button type="button" class="bhk-g__btn" data-act="toggle" data-g="' + g.key + '" aria-expanded="' + !isClosed + '">' +
         esc(g.label) + (state[g.key].length ? ' (' + state[g.key].length + ')' : '') + ICON_CHEV + '</button><div class="bhk-g__body">';
       if (g.type === 'pill') html += '<div class="bhk-pills">';
@@ -405,7 +406,7 @@
         } else {
           html += '<button type="button" class="bhk-opt"' + attrs + '>' +
             '<span class="bhk-cb" aria-hidden="true">' + ICON_CHECK + '</span>' + esc(v) +
-            '<span class="bhk-opt__n">' + counts[v] + '</span></button>';
+            (g.key === 'stone' ? '' : '<span class="bhk-opt__n">' + counts[v] + '</span>') + '</button>';
         }
       });
       if (g.type === 'pill') html += '</div>';
